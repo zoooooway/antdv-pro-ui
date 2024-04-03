@@ -4,10 +4,10 @@ import store from '@/store'
 /**
  * Action 权限指令
  * 指令用法：
- *  - 在需要控制 action 级别权限的组件上使用 v-action:[method] , 如下：
- *    <i-button v-action:add >添加用户</a-button>
- *    <a-button v-action:delete>删除用户</a-button>
- *    <a v-action:edit @click="edit(record)">修改</a>
+ *  - 在需要控制 action 级别权限的组件上使用 v-action:permission:method , 如下：
+ *    <i-button v-action:user:add >添加用户</a-button>
+ *    <a-button v-action:user:delete>删除用户</a-button>
+ *    <a v-action:user:edit @click="edit(record)">修改</a>
  *
  *  - 当前用户没有权限时，组件上使用了该指令则会被隐藏
  *  - 当后台权限跟 pro 提供的模式不同时，只需要针对这里的权限过滤进行修改即可
@@ -15,19 +15,21 @@ import store from '@/store'
  *  @see https://github.com/vueComponent/ant-design-vue-pro/pull/53
  */
 const action = Vue.directive('action', {
-  inserted: function (el, binding, vnode) {
+  inserted: function (el, binding) {
     const actionName = binding.arg
+    const [perm, op] = actionName.split(':')
     const roles = store.getters.roles
-    const elVal = vnode.context.$route.meta.permission
-    const permissionId = Object.prototype.toString.call(elVal) === '[object String]' && [elVal] || elVal
-    roles.permissions.forEach(p => {
-      if (!permissionId.includes(p.permissionId)) {
-        return
+    for (const role of roles) {
+      for (const p of role.permissions) {
+        if (perm === p.permissionKey) {
+          if (p.actionList && p.actionList.map(t => t.action).includes(op)) {
+            return
+          }
+        }
       }
-      if (p.actionList && !p.actionList.includes(actionName)) {
-        el.parentNode && el.parentNode.removeChild(el) || (el.style.display = 'none')
-      }
-    })
+    }
+
+    el.parentNode && el.parentNode.removeChild(el) || (el.style.display = 'none')
   }
 })
 

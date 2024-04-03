@@ -112,7 +112,7 @@ export const generator = (routerMap, parent) => {
         icon: icon || undefined,
         hiddenHeaderContent: hiddenHeaderContent,
         target: target,
-        permission: item.name
+        permission: item.key
       }
     }
     // 是否设置了隐藏菜单
